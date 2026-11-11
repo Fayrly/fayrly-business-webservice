@@ -1,0 +1,154 @@
+@if (eventsLoading()) {
+  <div class="space-y-4" aria-busy="true" aria-label="Memuat ulasan">
+    <div class="h-8 w-40 skeleton"></div>
+    <div class="h-20 skeleton"></div>
+    <div class="h-96 skeleton"></div>
+  </div>
+} @else if (eventsError()) {
+  <app-error-state [message]="eventsError()!" (retry)="loadEvents()" />
+} @else {
+  <div class="space-y-4">
+    <div>
+      <h2 class="text-xl font-semibold text-slate-900 sm:text-2xl">Ulasan</h2>
+      <p class="mt-1 text-sm text-slate-500">
+        Ulasan peserta pada event yang kamu kelola. Pilih event untuk melihat detailnya.
+      </p>
+    </div>
+
+    @if (events().length === 0) {
+      <app-empty-state
+        icon="star"
+        title="Belum ada event untuk dilihat ulasannya"
+        message="Ulasan akan muncul setelah peserta menilai event yang sudah berlangsung."
+        [actionLabel]="canWrite ? 'Buat event' : null"
+        (action)="goCreate()"
+      />
+    } @else {
+      <div class="card flex flex-col gap-3 p-4 sm:flex-row sm:items-end">
+        <label class="block min-w-0 flex-1">
+          <span class="field-label">Pilih event</span>
+          <select
+            class="field"
+            [value]="selectedId() ?? ''"
+            (change)="onEventChange($event)"
+          >
+            @for (event of events(); track event.id) {
+              <option [value]="event.id">
+                {{ event.title }} ({{ event.review_count }} ulasan)
+              </option>
+            }
+          </select>
+        </label>
+        @if (selectedEvent(); as event) {
+          <a [routerLink]="['/events', event.id]" class="btn-secondary sm:mb-0">
+            Lihat event
+          </a>
+        }
+      </div>
+
+      <section class="card" aria-labelledby="review-list-title">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+          <h3 id="review-list-title" class="text-sm font-semibold text-slate-900">
+            {{ selectedEvent()?.title }}
+          </h3>
+          @if (summary(); as summary) {
+            <p class="text-xs text-slate-500">
+              {{ summary.average.toFixed(1) }}/5 · {{ summary.count }} ulasan
+            </p>
+          }
+        </div>
+
+        @if (reviewsLoading()) {
+          <div class="space-y-3 p-5" aria-busy="true">
+            <div class="h-24 skeleton"></div>
+            <div class="h-24 skeleton"></div>
+            <div class="h-24 skeleton"></div>
+          </div>
+        } @else if (reviewsError()) {
+          <div class="p-5">
+            <div
+              class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-crimson-100 bg-crimson-50 px-3.5 py-3 text-sm text-crimson-700"
+              role="alert"
+            >
+              <span>{{ reviewsError() }}</span>
+              <button type="button" class="btn-secondary" (click)="loadReviews(1, true)">
+                Coba lagi
+              </button>
+            </div>
+          </div>
+        } @else if (reviews().length === 0) {
+          <p class="px-5 py-10 text-center text-sm leading-relaxed text-slate-500">
+            Event ini belum punya ulasan. Peserta dapat menulis ulasan dari halaman event publik.
+          </p>
+        } @else {
+          <ul class="divide-y divide-slate-100">
+            @for (review of reviews(); track review.id) {
+              <li class="px-5 py-4">
+                <div class="flex items-start gap-3">
+                  <span
+                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-mint-50 text-xs font-semibold text-mint-800"
+                  >
+                    {{ review.user_name.slice(0, 2).toUpperCase() }}
+                  </span>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                      <p class="text-sm font-medium text-slate-800">{{ review.user_name }}</p>
+                      <p class="text-xs text-slate-500">{{ formatDateTime(review.created_at) }}</p>
+                    </div>
+                    <div class="mt-1 flex items-center gap-1 text-mint-700" aria-hidden="true">
+                      @for (star of stars(review.rating); track $index) {
+                        <lucide-icon
+                          name="star"
+                          class="h-3.5 w-3.5"
+                          [class.text-slate-300]="star === 0"
+                          [class.fill-current]="star === 1"
+                        />
+                      }
+                      <span class="ml-1 text-xs font-medium text-slate-500">
+                        {{ review.rating }}/5
+                      </span>
+                    </div>
+                    <p class="mt-1.5 text-sm leading-relaxed text-slate-600">{{ review.body }}</p>
+                    @if (review.photo_url) {
+                      <img
+                        [src]="review.photo_url"
+                        [alt]="'Foto ulasan dari ' + review.user_name"
+                        class="mt-2 max-h-48 rounded-lg object-cover"
+                        loading="lazy"
+                      />
+                    }
+                    @if (review.helpful_count > 0) {
+                      <p class="mt-1.5 text-xs text-slate-500">
+                        {{ review.helpful_count }} orang merasa terbantu
+                      </p>
+                    }
+                  </div>
+                </div>
+              </li>
+            }
+          </ul>
+
+          @if (hasMore()) {
+            <div class="border-t border-slate-100 p-4 text-center">
+              <button
+                type="button"
+                class="btn-secondary"
+                [disabled]="loadingMore()"
+                (click)="loadMore()"
+              >
+                @if (loadingMore()) {
+                  <lucide-icon
+                    name="loader-circle"
+                    class="h-4 w-4 animate-spin"
+                    aria-hidden="true"
+                  />
+                }
+                Muat ulasan lainnya
+              </button>
+            </div>
+          }
+        }
+      </section>
+    }
+  </div>
+}

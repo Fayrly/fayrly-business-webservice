@@ -1,0 +1,125 @@
+<div class="flex min-h-dvh flex-col bg-canvas">
+  <header class="mx-auto flex w-full max-w-6xl items-center px-4 py-5 sm:px-6">
+    <a routerLink="/" class="flex items-center gap-3" aria-label="Fayrly Penyelenggara">
+      <span
+        class="flex h-9 w-9 items-center justify-center rounded-lg bg-mint-700 text-base font-semibold text-white"
+        aria-hidden="true"
+        >F</span
+      >
+      <span>
+        <span class="block text-sm font-semibold leading-tight text-slate-900">Fayrly</span>
+        <span class="block text-xs leading-tight text-slate-500">Penyelenggara</span>
+      </span>
+    </a>
+  </header>
+
+  <main class="flex flex-1 items-start justify-center px-4 pb-16 pt-6 sm:items-center sm:px-6">
+    <div class="w-full max-w-md">
+      <div class="card p-6 sm:p-8">
+        <h1 class="text-xl font-semibold text-slate-900">Masuk ke dashboard</h1>
+        <p class="mt-1 text-sm leading-relaxed text-slate-500">
+          Gunakan akun penyelenggara atau tim internal yang sudah terdaftar.
+        </p>
+
+        <form class="mt-6" (submit)="submit($event)" novalidate>
+          @if (error()) {
+            <div
+              class="mb-4 rounded-xl border border-crimson-100 bg-crimson-50 px-3.5 py-3 text-sm text-crimson-700"
+              role="alert"
+            >
+              {{ error() }}
+              @if (fieldErrors().length > 0) {
+                <ul class="mt-1 list-disc pl-4 text-xs">
+                  @for (message of fieldErrors(); track message) {
+                    <li>{{ message }}</li>
+                  }
+                </ul>
+              }
+            </div>
+          }
+
+          <label class="block">
+            <span class="field-label">Email</span>
+            <input
+              type="email"
+              name="email"
+              class="field"
+              placeholder="nama@organisasi.com"
+              autocomplete="email"
+              inputmode="email"
+              [value]="email()"
+              (input)="onEmailInput($event)"
+              [disabled]="loading()"
+              required
+            />
+          </label>
+
+          <div class="mt-4">
+            <div class="mb-1.5 flex items-center justify-between gap-3">
+              <label for="login-password" class="text-sm font-medium text-slate-700">
+                Kata sandi
+              </label>
+              <a
+                routerLink="/lupa-password"
+                class="text-xs font-medium text-mint-700 hover:text-mint-800"
+              >
+                Lupa kata sandi?
+              </a>
+            </div>
+            <div class="relative">
+              <input
+                id="login-password"
+                [type]="showPassword() ? 'text' : 'password'"
+                name="password"
+                class="field pr-12"
+                placeholder="Masukkan kata sandi"
+                autocomplete="current-password"
+                [value]="password()"
+                (input)="onPasswordInput($event)"
+                [disabled]="loading()"
+                required
+              />
+              <button
+                type="button"
+                class="absolute right-0 top-0 flex h-11 w-11 items-center justify-center rounded-r-xl text-slate-500 hover:text-mint-800"
+                [attr.aria-label]="showPassword() ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
+                (click)="showPassword.set(!showPassword())"
+              >
+                <lucide-icon
+                  [name]="showPassword() ? 'eye-off' : 'eye'"
+                  class="h-4 w-4"
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
+          </div>
+
+          <label class="mt-2 flex min-h-11 w-fit cursor-pointer items-center gap-2.5 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              name="remember"
+              class="h-4 w-4 rounded border-slate-300 accent-mint-700"
+              [checked]="remember()"
+              (change)="onRememberChange($event)"
+              [disabled]="loading()"
+            />
+            Ingat saya di perangkat ini
+          </label>
+
+          <button type="submit" class="btn-primary mt-3 w-full" [disabled]="loading()">
+            @if (loading()) {
+              <lucide-icon name="loader-circle" class="h-4 w-4 animate-spin" aria-hidden="true" />
+              Memeriksa…
+            } @else {
+              Masuk
+            }
+          </button>
+        </form>
+      </div>
+
+      <p class="mt-4 text-center text-xs leading-relaxed text-slate-500">
+        Akses dashboard hanya untuk penyelenggara dan tim internal Fayrly.
+      </p>
+    </div>
+  </main>
+</div>

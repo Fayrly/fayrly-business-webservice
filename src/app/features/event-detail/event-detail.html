@@ -1,0 +1,415 @@
+@if (loading()) {
+  <div class="space-y-4" aria-busy="true" aria-label="Memuat detail event">
+    <div class="h-8 w-48 skeleton"></div>
+    <div class="h-56 skeleton"></div>
+    <div class="grid gap-5 lg:grid-cols-3">
+      <div class="h-72 skeleton lg:col-span-2"></div>
+      <div class="h-72 skeleton"></div>
+    </div>
+  </div>
+} @else if (error()) {
+  <app-error-state [message]="error()!" (retry)="load()" />
+} @else if (event(); as item) {
+  <div class="space-y-4">
+    <a
+      routerLink="/events"
+      class="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-mint-700"
+    >
+      <lucide-icon name="arrow-left" class="h-4 w-4" aria-hidden="true" />
+      Event Saya
+    </a>
+
+    @if (notice()) {
+      <div
+        class="flex items-start justify-between gap-3 rounded-xl border border-mint-200 bg-mint-50 px-3.5 py-3 text-sm text-mint-800"
+        role="status"
+      >
+        <span>{{ notice() }}</span>
+        <button
+          type="button"
+          class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-mint-700 hover:bg-mint-100"
+          aria-label="Tutup pemberitahuan"
+          (click)="notice.set(null)"
+        >
+          <lucide-icon name="x" class="h-3.5 w-3.5" aria-hidden="true" />
+        </button>
+      </div>
+    }
+
+    @if (actionError()) {
+      <div
+        class="flex items-start justify-between gap-3 rounded-xl border border-crimson-100 bg-crimson-50 px-3.5 py-3 text-sm text-crimson-700"
+        role="alert"
+      >
+        <span>{{ actionError() }}</span>
+        <button
+          type="button"
+          class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-crimson-700 hover:bg-crimson-100"
+          aria-label="Tutup pesan kesalahan"
+          (click)="actionError.set(null)"
+        >
+          <lucide-icon name="x" class="h-3.5 w-3.5" aria-hidden="true" />
+        </button>
+      </div>
+    }
+
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-2">
+          <app-status-badge [status]="item.status" kind="event" />
+          <span class="text-xs text-slate-500">{{ typeLabel(item.type) }}</span>
+        </div>
+        <h2 class="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">{{ item.title }}</h2>
+        <p class="mt-1 text-sm text-slate-500">
+          {{ formatLongDate(item.starts_at) }} ·
+          {{ formatTimeRange(item.starts_at, item.ends_at) }}
+        </p>
+      </div>
+
+      @if (canWrite && editable()) {
+        <a [routerLink]="['/events', item.id, 'ubah']" class="btn-secondary">
+          <lucide-icon name="pencil" class="h-4 w-4" aria-hidden="true" />
+          Ubah event
+        </a>
+      }
+    </div>
+
+    @if (item.cover_image_url) {
+      <div class="card overflow-hidden">
+        <img
+          [src]="item.cover_image_url"
+          [alt]="'Poster ' + item.title"
+          class="max-h-72 w-full object-cover"
+        />
+      </div>
+    }
+
+    <div class="grid gap-5 lg:grid-cols-[1fr_20rem]">
+      <div class="min-w-0 space-y-5">
+        <section class="card p-5" aria-labelledby="about-title">
+          <h3 id="about-title" class="text-sm font-semibold text-slate-900">Tentang event</h3>
+          @if (item.description) {
+            <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-600">
+              {{ item.description }}
+            </p>
+          } @else {
+            <p class="mt-2 text-sm text-slate-500">Deskripsi belum diisi.</p>
+          }
+
+          <dl class="mt-4 grid gap-4 border-t border-slate-100 pt-4 sm:grid-cols-2">
+            <div class="flex gap-2.5">
+              <lucide-icon
+                name="calendar-clock"
+                class="mt-0.5 h-4 w-4 shrink-0 text-slate-400"
+                aria-hidden="true"
+              />
+              <div>
+                <dt class="text-xs text-slate-500">Jadwal</dt>
+                <dd class="text-sm text-slate-800">{{ formatEventDate(item.starts_at) }}</dd>
+                @if (item.ends_at) {
+                  <dd class="text-xs text-slate-500">
+                    Selesai {{ formatEventDate(item.ends_at) }}
+                  </dd>
+                }
+              </div>
+            </div>
+
+            <div class="flex gap-2.5">
+              <lucide-icon
+                name="map-pin"
+                class="mt-0.5 h-4 w-4 shrink-0 text-slate-400"
+                aria-hidden="true"
+              />
+              <div>
+                <dt class="text-xs text-slate-500">Lokasi</dt>
+                <dd class="text-sm text-slate-800">{{ item.venue_name || 'Belum diisi' }}</dd>
+                @if (item.venue_address || item.city) {
+                  <dd class="text-xs text-slate-500">
+                    {{ item.venue_address }}{{ item.venue_address && item.city ? ', ' : ''
+                    }}{{ item.city }}{{ item.country ? ' · ' + item.country : '' }}
+                  </dd>
+                }
+              </div>
+            </div>
+
+            <div class="flex gap-2.5">
+              <lucide-icon
+                name="ticket"
+                class="mt-0.5 h-4 w-4 shrink-0 text-slate-400"
+                aria-hidden="true"
+              />
+              <div>
+                <dt class="text-xs text-slate-500">Tiket</dt>
+                <dd class="text-sm text-slate-800">{{ priceLabel(item) }}</dd>
+                <dd class="text-xs text-slate-500">
+                  Kapasitas {{ item.capacity > 0 ? formatNumber(item.capacity) : 'belum ditentukan' }}
+                </dd>
+              </div>
+            </div>
+
+            <div class="flex gap-2.5">
+              <lucide-icon
+                name="users"
+                class="mt-0.5 h-4 w-4 shrink-0 text-slate-400"
+                aria-hidden="true"
+              />
+              <div>
+                <dt class="text-xs text-slate-500">Peserta</dt>
+                <dd class="text-sm text-slate-800">
+                  {{ formatNumber(item.going_count) }} akan hadir
+                </dd>
+                <dd class="text-xs text-slate-500">
+                  {{ item.review_count }} ulasan
+                  @if (item.review_count > 0) {
+                    · rata-rata {{ item.rating_avg.toFixed(1) }}/5
+                  }
+                </dd>
+              </div>
+            </div>
+          </dl>
+
+          @if (item.tags.length > 0) {
+            <p class="mt-4 border-t border-slate-100 pt-4 text-xs text-slate-500">
+              {{ item.tags.join(' · ') }}
+            </p>
+          }
+        </section>
+
+        @if (item.type === 'charity') {
+          <section class="card p-5" aria-labelledby="charity-title">
+            <h3 id="charity-title" class="text-sm font-semibold text-slate-900">Donasi</h3>
+            <p class="mt-1 text-sm text-slate-600">
+              Penerima manfaat:
+              <span class="font-medium text-slate-800">{{ item.beneficiary || 'Belum diisi' }}</span>
+            </p>
+            @if ((item.donation_target ?? 0) > 0) {
+              <div class="mt-3 flex items-center justify-between text-xs text-slate-500">
+                <span>{{ formatMoney(item.donation_raised ?? 0, item.currency) }} terkumpul</span>
+                <span>Target {{ formatMoney(item.donation_target ?? 0, item.currency) }}</span>
+              </div>
+              <div class="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  class="h-full rounded-full bg-mint-600"
+                  [style.width.%]="donationPercent(item)"
+                ></div>
+              </div>
+              <p class="mt-1.5 text-xs text-slate-500">{{ donationPercent(item) }}% dari target</p>
+            }
+          </section>
+        }
+
+        <section class="card" aria-labelledby="reviews-title">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+            <h3 id="reviews-title" class="text-sm font-semibold text-slate-900">Ulasan peserta</h3>
+            @if (summary(); as summary) {
+              <p class="text-xs text-slate-500">
+                {{ summary.average.toFixed(1) }}/5 · {{ summary.count }} ulasan
+              </p>
+            }
+          </div>
+
+          @if (reviewsLoading()) {
+            <div class="space-y-3 p-5" aria-busy="true">
+              <div class="h-20 skeleton"></div>
+              <div class="h-20 skeleton"></div>
+            </div>
+          } @else if (reviewsError()) {
+            <div class="p-5">
+              <div
+                class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-crimson-100 bg-crimson-50 px-3.5 py-3 text-sm text-crimson-700"
+                role="alert"
+              >
+                <span>{{ reviewsError() }}</span>
+                <button type="button" class="btn-secondary" (click)="loadReviews(1, true)">
+                  Coba lagi
+                </button>
+              </div>
+            </div>
+          } @else if (reviews().length === 0) {
+            <p class="px-5 py-8 text-sm leading-relaxed text-slate-500">
+              Belum ada ulasan untuk event ini. Ulasan dari peserta akan muncul di sini.
+            </p>
+          } @else {
+            <ul class="divide-y divide-slate-100">
+              @for (review of reviews(); track review.id) {
+                <li class="px-5 py-4">
+                  <div class="flex items-start gap-3">
+                    <span
+                      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-mint-50 text-xs font-semibold text-mint-800"
+                    >
+                      {{ review.user_name.slice(0, 2).toUpperCase() }}
+                    </span>
+                    <div class="min-w-0 flex-1">
+                      <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                        <p class="text-sm font-medium text-slate-800">{{ review.user_name }}</p>
+                        <p class="text-xs text-slate-500">{{ formatDateTime(review.created_at) }}</p>
+                      </div>
+                      <div class="mt-1 flex items-center gap-1 text-mint-700" aria-hidden="true">
+                        @for (star of stars(review.rating); track $index) {
+                          <lucide-icon
+                            name="star"
+                            class="h-3.5 w-3.5"
+                            [class.text-slate-300]="star === 0"
+                            [class.fill-current]="star === 1"
+                          />
+                        }
+                        <span class="ml-1 text-xs font-medium text-slate-500">
+                          {{ review.rating }}/5
+                        </span>
+                      </div>
+                      <p class="mt-1.5 text-sm leading-relaxed text-slate-600">{{ review.body }}</p>
+                      @if (review.photo_url) {
+                        <img
+                          [src]="review.photo_url"
+                          alt="Foto ulasan dari {{ review.user_name }}"
+                          class="mt-2 max-h-48 rounded-lg object-cover"
+                          loading="lazy"
+                        />
+                      }
+                      @if (review.helpful_count > 0) {
+                        <p class="mt-1.5 text-xs text-slate-500">
+                          {{ review.helpful_count }} orang merasa terbantu
+                        </p>
+                      }
+                    </div>
+                  </div>
+                </li>
+              }
+            </ul>
+
+            @if (hasMore()) {
+              <div class="border-t border-slate-100 p-4 text-center">
+                <button
+                  type="button"
+                  class="btn-secondary"
+                  [disabled]="loadingMore()"
+                  (click)="loadMoreReviews()"
+                >
+                  @if (loadingMore()) {
+                    <lucide-icon
+                      name="loader-circle"
+                      class="h-4 w-4 animate-spin"
+                      aria-hidden="true"
+                    />
+                  }
+                  Muat ulasan lainnya
+                </button>
+              </div>
+            }
+          }
+        </section>
+      </div>
+
+      <aside class="space-y-4 lg:sticky lg:top-20 lg:self-start">
+        <section class="card p-5" aria-labelledby="manage-title">
+          <h3 id="manage-title" class="text-sm font-semibold text-slate-900">Kelola event</h3>
+
+          <div class="mt-3 space-y-2">
+            @if (nextAction(); as action) {
+              <button
+                type="button"
+                class="btn-primary w-full"
+                [disabled]="busy()"
+                (click)="transition(action.status)"
+              >
+                @if (busy()) {
+                  <lucide-icon
+                    name="loader-circle"
+                    class="h-4 w-4 animate-spin"
+                    aria-hidden="true"
+                  />
+                }
+                {{ action.label }}
+              </button>
+            }
+
+            @if (canWrite && editable()) {
+              <a [routerLink]="['/events', item.id, 'ubah']" class="btn-secondary w-full">
+                Ubah detail
+              </a>
+            }
+
+            @if (canPublish && editable()) {
+              <button type="button" class="btn-quiet w-full text-crimson-700" (click)="ask('cancel')">
+                <lucide-icon name="ban" class="h-4 w-4" aria-hidden="true" />
+                Batalkan event
+              </button>
+            }
+
+            @if (canDelete) {
+              <button type="button" class="btn-quiet w-full text-crimson-700" (click)="ask('delete')">
+                <lucide-icon name="trash-2" class="h-4 w-4" aria-hidden="true" />
+                Hapus event
+              </button>
+            }
+
+            @if (!canWrite && !canPublish && !canDelete) {
+              <p class="text-sm text-slate-500">
+                Peranmu hanya dapat melihat event ini.
+              </p>
+            }
+          </div>
+
+          <dl class="mt-4 space-y-2 border-t border-slate-100 pt-4 text-xs">
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-500">Dibuat</dt>
+              <dd class="text-right text-slate-700">{{ formatDateTime(item.created_at) }}</dd>
+            </div>
+            @if (item.published_at) {
+              <div class="flex justify-between gap-3">
+                <dt class="text-slate-500">Diterbitkan</dt>
+                <dd class="text-right text-slate-700">
+                  {{ formatDateTime(item.published_at) }}
+                </dd>
+              </div>
+            }
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-500">Terakhir diperbarui</dt>
+              <dd class="text-right text-slate-700">{{ formatDateTime(item.updated_at) }}</dd>
+            </div>
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-500">Dibuat oleh</dt>
+              <dd class="text-right text-slate-700">{{ item.created_by_name }}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="card p-5" aria-labelledby="contact-title">
+          <h3 id="contact-title" class="text-sm font-semibold text-slate-900">Penyelenggara</h3>
+          <p class="mt-2 text-sm font-medium text-slate-800">
+            {{ item.organizer_name || item.created_by_name }}
+          </p>
+          @if (item.contact_email) {
+            <a
+              [href]="'mailto:' + item.contact_email"
+              class="mt-2 flex min-h-11 items-center gap-2 text-sm text-mint-700 hover:text-mint-800"
+            >
+              <lucide-icon name="mail" class="h-4 w-4" aria-hidden="true" />
+              <span class="truncate">{{ item.contact_email }}</span>
+            </a>
+          }
+          @if (item.contact_phone) {
+            <a
+              [href]="'tel:' + item.contact_phone"
+              class="mt-1 flex min-h-11 items-center gap-2 text-sm text-mint-700 hover:text-mint-800"
+            >
+              <lucide-icon name="phone" class="h-4 w-4" aria-hidden="true" />
+              {{ item.contact_phone }}
+            </a>
+          }
+        </section>
+      </aside>
+    </div>
+  </div>
+}
+
+<app-confirm-dialog
+  [open]="pending() !== null"
+  [title]="dialogTitle()"
+  [message]="dialogMessage()"
+  [confirmLabel]="pending() === 'delete' ? 'Hapus event' : 'Batalkan event'"
+  [requireText]="pending() === 'delete' ? event()?.title ?? null : null"
+  [busy]="confirming()"
+  (confirm)="confirmPending()"
+  (cancel)="closeDialog()"
+/>

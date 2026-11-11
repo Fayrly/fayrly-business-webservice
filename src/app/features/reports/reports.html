@@ -1,0 +1,577 @@
+@if (loading() && reports().length === 0) {
+  <div class="space-y-4" aria-busy="true" aria-label="Memuat laporan">
+    <div class="h-8 w-48 skeleton"></div>
+    <div class="h-16 skeleton"></div>
+    <div class="h-96 skeleton"></div>
+  </div>
+} @else {
+  <div class="space-y-4">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 class="text-xl font-semibold text-slate-900 sm:text-2xl">Laporan</h2>
+        <p class="mt-1 text-sm text-slate-500">
+          Tulis laporan kegiatan, kirim untuk ditinjau, lalu pantau keputusannya.
+        </p>
+      </div>
+      @if (canWrite) {
+        <button type="button" class="btn-primary" (click)="openCreate()">
+          <lucide-icon name="plus" class="h-4 w-4" aria-hidden="true" />
+          Buat laporan
+        </button>
+      }
+    </div>
+
+    @if (notice()) {
+      <div
+        class="flex items-start justify-between gap-3 rounded-xl border border-mint-200 bg-mint-50 px-3.5 py-3 text-sm text-mint-800"
+        role="status"
+      >
+        <span>{{ notice() }}</span>
+        <button
+          type="button"
+          class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-mint-700 hover:bg-mint-100"
+          aria-label="Tutup pemberitahuan"
+          (click)="notice.set(null)"
+        >
+          <lucide-icon name="x" class="h-3.5 w-3.5" aria-hidden="true" />
+        </button>
+      </div>
+    }
+
+    @if (actionError()) {
+      <div
+        class="flex items-start justify-between gap-3 rounded-xl border border-crimson-100 bg-crimson-50 px-3.5 py-3 text-sm text-crimson-700"
+        role="alert"
+      >
+        <span>{{ actionError() }}</span>
+        <button
+          type="button"
+          class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-crimson-700 hover:bg-crimson-100"
+          aria-label="Tutup pesan kesalahan"
+          (click)="actionError.set(null)"
+        >
+          <lucide-icon name="x" class="h-3.5 w-3.5" aria-hidden="true" />
+        </button>
+      </div>
+    }
+
+    <form class="card flex flex-col gap-2 p-3 sm:flex-row sm:items-center" (submit)="applyFilters($event)">
+      <label class="min-w-0 flex-1">
+        <span class="sr-only">Cari laporan</span>
+        <div class="relative">
+          <lucide-icon
+            name="search"
+            class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+            aria-hidden="true"
+          />
+          <input
+            type="search"
+            class="field pl-9"
+            placeholder="Cari judul laporan…"
+            [value]="query()"
+            (input)="onSearchInput($event)"
+          />
+        </div>
+      </label>
+
+      <label class="sm:w-44">
+        <span class="sr-only">Filter status</span>
+        <select class="field" (change)="onStatusChange($event)">
+          <option value="" [selected]="status() === ''">Semua status</option>
+          @for (item of statuses; track item) {
+            <option [value]="item" [selected]="status() === item">
+              {{ statusLabels[item] }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label class="sm:w-40">
+        <span class="sr-only">Filter jenis</span>
+        <select class="field" (change)="onTypeChange($event)">
+          <option value="" [selected]="type() === ''">Semua jenis</option>
+          @for (item of types; track item) {
+            <option [value]="item" [selected]="type() === item">
+              {{ typeLabels[item] }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label class="flex min-h-11 w-fit shrink-0 cursor-pointer items-center gap-2 text-sm text-slate-600">
+        <input
+          type="checkbox"
+          class="h-4 w-4 rounded border-slate-300 accent-mint-700"
+          [checked]="mine()"
+          (change)="onMineChange($event)"
+        />
+        Milik saya
+      </label>
+
+      <button type="submit" class="btn-secondary">Cari</button>
+
+      @if (hasFilters()) {
+        <button type="button" class="btn-quiet" (click)="clearFilters()">
+          <lucide-icon name="x" class="h-4 w-4" aria-hidden="true" />
+          Reset
+        </button>
+      }
+    </form>
+
+    @if (error()) {
+      <app-error-state [message]="error()!" (retry)="load()" />
+    } @else if (reports().length === 0) {
+      @if (hasFilters()) {
+        <app-empty-state
+          icon="search"
+          title="Tidak ada laporan yang cocok"
+          message="Coba ubah kata kunci atau filter laporan."
+          actionLabel="Hapus filter"
+          (action)="clearFilters()"
+        />
+      } @else {
+        <app-empty-state
+          icon="file-text"
+          title="Belum ada laporan"
+          message="Laporan membantu tim mengevaluasi event. Mulai dari draf, lalu kirim untuk ditinjau."
+          [actionLabel]="canWrite ? 'Buat laporan' : null"
+          (action)="openCreate()"
+        />
+      }
+    } @else {
+      <div class="card hidden overflow-hidden md:block">
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[820px]">
+            <thead>
+              <tr class="table-head">
+                <th scope="col" class="px-4 py-3">Laporan</th>
+                <th scope="col" class="px-4 py-3">Jenis</th>
+                <th scope="col" class="px-4 py-3">Status</th>
+                <th scope="col" class="px-4 py-3">Penulis</th>
+                <th scope="col" class="px-4 py-3">Diperbarui</th>
+                <th scope="col" class="px-4 py-3 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (report of reports(); track report.id) {
+                <tr class="align-top hover:bg-slate-50/60">
+                  <td class="table-cell">
+                    <button
+                      type="button"
+                      class="block max-w-72 truncate text-left font-medium text-slate-900 hover:text-mint-800"
+                      (click)="openReport(report.id)"
+                    >
+                      {{ report.title }}
+                    </button>
+                    <p class="mt-0.5 truncate text-xs text-slate-500">
+                      {{ report.event_title || 'Tanpa event' }}
+                    </p>
+                  </td>
+                  <td class="table-cell whitespace-nowrap text-slate-600">
+                    {{ typeLabels[report.type] }}
+                  </td>
+                  <td class="table-cell">
+                    <app-status-badge [status]="report.status" kind="report" />
+                  </td>
+                  <td class="table-cell whitespace-nowrap text-slate-600">
+                    {{ report.created_by_name }}
+                  </td>
+                  <td class="table-cell whitespace-nowrap text-slate-600">
+                    {{ formatDateTime(report.updated_at) }}
+                  </td>
+                  <td class="table-cell text-right">
+                    <button type="button" class="btn-quiet" (click)="openReport(report.id)">
+                      Lihat
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="space-y-3 md:hidden">
+        @for (report of reports(); track report.id) {
+          <article class="card p-4">
+            <div class="flex items-start justify-between gap-3">
+              <button
+                type="button"
+                class="min-w-0 text-left text-sm font-semibold text-slate-900"
+                (click)="openReport(report.id)"
+              >
+                {{ report.title }}
+              </button>
+              <app-status-badge [status]="report.status" kind="report" />
+            </div>
+            <p class="mt-1 text-xs text-slate-500">
+              {{ typeLabels[report.type] }} · {{ report.event_title || 'Tanpa event' }}
+            </p>
+            <p class="mt-0.5 text-xs text-slate-500">
+              {{ report.created_by_name }} · {{ formatDateTime(report.updated_at) }}
+            </p>
+            <button type="button" class="btn-secondary mt-3" (click)="openReport(report.id)">
+              Lihat laporan
+            </button>
+          </article>
+        }
+      </div>
+
+      @if (pagination(); as pageInfo) {
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <p class="text-xs text-slate-500">
+            Halaman {{ pageInfo.page }} dari {{ pageInfo.total_pages }} · {{ pageInfo.total }}
+            laporan
+          </p>
+          <div class="flex gap-2">
+            <button
+              type="button"
+              class="btn-secondary"
+              [disabled]="pageInfo.page <= 1 || loading()"
+              (click)="goToPage(pageInfo.page - 1)"
+            >
+              <lucide-icon name="chevron-left" class="h-4 w-4" aria-hidden="true" />
+              Sebelumnya
+            </button>
+            <button
+              type="button"
+              class="btn-secondary"
+              [disabled]="pageInfo.page >= pageInfo.total_pages || loading()"
+              (click)="goToPage(pageInfo.page + 1)"
+            >
+              Berikutnya
+              <lucide-icon name="chevron-right" class="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </div>
+}
+
+@if (detailLoading() || selected() || detailError()) {
+  <div class="fixed inset-0 z-50 flex justify-end bg-slate-900/40" role="presentation" (click)="closeDetail()">
+    <div
+      class="h-full w-full max-w-2xl overflow-y-auto bg-white shadow-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="report-detail-title"
+      (click)="$event.stopPropagation()"
+    >
+      @if (detailLoading()) {
+        <div class="space-y-4 p-5" aria-busy="true">
+          <div class="h-8 w-56 skeleton"></div>
+          <div class="h-40 skeleton"></div>
+          <div class="h-56 skeleton"></div>
+        </div>
+      } @else if (detailError()) {
+        <div class="p-5">
+          <div class="flex items-center justify-between gap-3">
+            <h2 class="text-base font-semibold text-slate-900">Gagal memuat laporan</h2>
+            <button type="button" class="icon-button" aria-label="Tutup" (click)="closeDetail()">
+              <lucide-icon name="x" class="h-5 w-5" aria-hidden="true" />
+            </button>
+          </div>
+          <p class="mt-2 text-sm text-slate-600">{{ detailError() }}</p>
+        </div>
+      } @else if (selected(); as report) {
+        <div class="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-slate-100 bg-white px-5 py-4">
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <app-status-badge [status]="report.status" kind="report" />
+              <span class="text-xs text-slate-500">{{ typeLabels[report.type] }}</span>
+            </div>
+            <h2 id="report-detail-title" class="mt-1.5 text-lg font-semibold text-slate-900">
+              {{ report.title }}
+            </h2>
+          </div>
+          <button type="button" class="icon-button" aria-label="Tutup detail laporan" (click)="closeDetail()">
+            <lucide-icon name="x" class="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div class="space-y-5 p-5">
+          @if (actionError()) {
+            <div class="rounded-xl border border-crimson-100 bg-crimson-50 px-3.5 py-3 text-sm text-crimson-700" role="alert">
+              {{ actionError() }}
+            </div>
+          }
+
+          <dl class="grid gap-3 text-sm sm:grid-cols-2">
+            <div>
+              <dt class="text-xs text-slate-500">Event</dt>
+              <dd class="text-slate-800">{{ report.event_title || 'Tidak terkait event' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-slate-500">Periode</dt>
+              <dd class="text-slate-800">{{ periodLabel(report) }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-slate-500">Penulis</dt>
+              <dd class="text-slate-800">{{ report.created_by_name }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-slate-500">Diperbarui</dt>
+              <dd class="text-slate-800">{{ formatDateTime(report.updated_at) }}</dd>
+            </div>
+            @if (report.submitted_at) {
+              <div>
+                <dt class="text-xs text-slate-500">Dikirim</dt>
+                <dd class="text-slate-800">{{ formatDateTime(report.submitted_at) }}</dd>
+              </div>
+            }
+            @if (report.reviewed_at) {
+              <div>
+                <dt class="text-xs text-slate-500">Ditinjau oleh</dt>
+                <dd class="text-slate-800">{{ report.reviewed_by_name || '—' }}</dd>
+              </div>
+            }
+          </dl>
+
+          <section>
+            <h3 class="text-sm font-semibold text-slate-900">Ringkasan</h3>
+            @if (report.summary) {
+              <p class="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-slate-600">
+                {{ report.summary }}
+              </p>
+            } @else {
+              <p class="mt-1.5 text-sm text-slate-500">Ringkasan belum diisi.</p>
+            }
+          </section>
+
+          <section>
+            <h3 class="text-sm font-semibold text-slate-900">Metrik</h3>
+            <pre class="mt-1.5 overflow-x-auto rounded-xl border border-slate-200 bg-canvas p-3 text-xs leading-relaxed text-slate-700">{{ metricsJson(report) }}</pre>
+          </section>
+
+          @if (report.review_notes) {
+            <section class="rounded-xl border border-slate-200 bg-canvas p-4">
+              <h3 class="text-sm font-semibold text-slate-900">Catatan tinjauan</h3>
+              <p class="mt-1 whitespace-pre-line text-sm text-slate-600">{{ report.review_notes }}</p>
+            </section>
+          }
+
+          @if (canReview(report)) {
+            <section class="rounded-xl border border-mint-200 bg-mint-50 p-4" aria-labelledby="review-form-title">
+              <h3 id="review-form-title" class="text-sm font-semibold text-mint-900">
+                Tinjau laporan ini
+              </h3>
+              <label class="mt-3 block">
+                <span class="field-label">Keputusan</span>
+                <select
+                  class="field"
+                  [value]="reviewDecision()"
+                  (change)="reviewDecision.set($any($event.target).value)"
+                >
+                  <option value="approved">Setujui</option>
+                  <option value="rejected">Tolak</option>
+                </select>
+              </label>
+              <label class="mt-3 block">
+                <span class="field-label">
+                  Catatan
+                  @if (reviewDecision() === 'rejected') {
+                    <span class="text-crimson-600">*</span>
+                  }
+                </span>
+                <textarea
+                  rows="3"
+                  class="field min-h-24 py-3"
+                  placeholder="Tuliskan alasan atau saran perbaikan…"
+                  [value]="reviewNotes()"
+                  (input)="reviewNotes.set($any($event.target).value)"
+                ></textarea>
+              </label>
+              @if (reviewError()) {
+                <p class="mt-1.5 text-xs font-medium text-crimson-700">{{ reviewError() }}</p>
+              }
+              <button type="button" class="btn-primary mt-3" [disabled]="reviewing()" (click)="review(report)">
+                @if (reviewing()) {
+                  <lucide-icon name="loader-circle" class="h-4 w-4 animate-spin" aria-hidden="true" />
+                }
+                Kirim tinjauan
+              </button>
+            </section>
+          } @else if (report.status === 'submitted' && isOwn(report)) {
+            <p class="rounded-xl border border-slate-200 bg-canvas px-3.5 py-3 text-sm text-slate-600">
+              Laporanmu sedang menunggu peninjau lain. Kamu tidak bisa meninjau laporan sendiri.
+            </p>
+          }
+
+          <div class="flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+            @if (canWrite && isOwn(report) && (report.status === 'draft' || report.status === 'rejected')) {
+              <button type="button" class="btn-secondary" (click)="openEdit(report)">
+                <lucide-icon name="pencil" class="h-4 w-4" aria-hidden="true" />
+                Ubah
+              </button>
+              <button
+                type="button"
+                class="btn-primary"
+                [disabled]="actionBusy()"
+                (click)="submitReport(report)"
+              >
+                @if (actionBusy()) {
+                  <lucide-icon name="loader-circle" class="h-4 w-4 animate-spin" aria-hidden="true" />
+                }
+                Kirim untuk ditinjau
+              </button>
+              <button
+                type="button"
+                class="btn-quiet text-crimson-700"
+                (click)="askDelete(report)"
+              >
+                <lucide-icon name="trash-2" class="h-4 w-4" aria-hidden="true" />
+                Hapus
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+@if (formOpen()) {
+  <div class="fixed inset-0 z-50 flex justify-end bg-slate-900/40" role="presentation" (click)="closeForm()">
+    <div
+      class="h-full w-full max-w-2xl overflow-y-auto bg-white shadow-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="report-form-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-slate-100 bg-white px-5 py-4">
+        <h2 id="report-form-title" class="text-lg font-semibold text-slate-900">
+          {{ editingId() ? 'Ubah laporan' : 'Buat laporan' }}
+        </h2>
+        <button type="button" class="icon-button" aria-label="Tutup formulir" (click)="closeForm()">
+          <lucide-icon name="x" class="h-5 w-5" aria-hidden="true" />
+        </button>
+      </div>
+
+      <form class="space-y-4 p-5" [formGroup]="form" (ngSubmit)="saveForm()" novalidate>
+        @if (formError()) {
+          <div class="rounded-xl border border-crimson-100 bg-crimson-50 px-3.5 py-3 text-sm text-crimson-700" role="alert">
+            {{ formError() }}
+          </div>
+        }
+
+        <label class="block">
+          <span class="field-label">Judul laporan <span class="text-crimson-600">*</span></span>
+          <input type="text" class="field" formControlName="title" placeholder="Laporan Keuangan Konser Amal Senja" />
+          @if (fieldError('title', 'Judul laporan'); as message) {
+            <span class="field-error">{{ message }}</span>
+          }
+        </label>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="block">
+            <span class="field-label">Jenis <span class="text-crimson-600">*</span></span>
+            <select class="field" formControlName="type">
+              @for (item of types; track item) {
+                <option [value]="item">{{ typeLabels[item] }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="block">
+            <span class="field-label">Event terkait</span>
+            <select class="field" formControlName="event_id" (change)="onEventSelect($event)">
+              <option value="">Tidak terkait event</option>
+              @if (hasCustomEvent()) {
+                <option [value]="form.controls.event_id.value">
+                  {{ form.controls.event_title.value }}
+                </option>
+              }
+              @for (event of events(); track event.id) {
+                <option [value]="event.id">{{ event.title }}</option>
+              }
+            </select>
+            <span class="field-hint">Daftar berisi event yang kamu buat.</span>
+          </label>
+        </div>
+
+        <label class="block">
+          <span class="field-label">Nama event (teks)</span>
+          <input type="text" class="field" formControlName="event_title" placeholder="Nama event bila tidak dipilih dari daftar" />
+          @if (fieldError('event_title', 'Nama event'); as message) {
+            <span class="field-error">{{ message }}</span>
+          }
+        </label>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="block">
+            <span class="field-label">Periode mulai</span>
+            <input type="date" class="field" formControlName="period_start" />
+          </label>
+          <label class="block">
+            <span class="field-label">Periode akhir</span>
+            <input
+              type="date"
+              class="field"
+              formControlName="period_end"
+              [attr.aria-invalid]="!!periodError()"
+            />
+            @if (periodError(); as message) {
+              <span class="field-error">{{ message }}</span>
+            }
+          </label>
+        </div>
+
+        <label class="block">
+          <span class="field-label">Ringkasan</span>
+          <textarea
+            rows="5"
+            class="field min-h-28 py-3"
+            formControlName="summary"
+            placeholder="Ringkas hasil kegiatan, kendala, dan tindak lanjut."
+          ></textarea>
+          @if (fieldError('summary', 'Ringkasan'); as message) {
+            <span class="field-error">{{ message }}</span>
+          }
+        </label>
+
+        <label class="block">
+          <span class="field-label">Metrik (JSON, opsional)</span>
+          <textarea
+            rows="5"
+            class="field min-h-28 py-3 font-mono text-xs"
+            formControlName="metrics"
+            placeholder='{"hadir": 120, "pendapatan": 8500000}'
+          ></textarea>
+          <span class="field-hint">Harus berupa objek JSON. Contoh: {{ '{' }}"hadir": 120{{ '}' }}.</span>
+          @if (fieldError('metrics', 'Metrik'); as message) {
+            <span class="field-error">{{ message }}</span>
+          }
+        </label>
+
+        <div class="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
+          <button type="button" class="btn-secondary" (click)="closeForm()" [disabled]="formSaving()">
+            Batal
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="formSaving()">
+            @if (formSaving()) {
+              <lucide-icon name="loader-circle" class="h-4 w-4 animate-spin" aria-hidden="true" />
+            }
+            {{ editingId() ? 'Simpan perubahan' : 'Simpan draf' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<app-confirm-dialog
+  [open]="pendingDelete() !== null"
+  title="Hapus laporan"
+  [message]="
+    pendingDelete()
+      ? 'Laporan “' + pendingDelete()!.title + '” akan dihapus. Tindakan ini tidak bisa dibatalkan.'
+      : ''
+  "
+  confirmLabel="Hapus laporan"
+  [requireText]="pendingDelete()?.title ?? null"
+  [busy]="deleting()"
+  (confirm)="confirmDelete()"
+  (cancel)="cancelDelete()"
+/>

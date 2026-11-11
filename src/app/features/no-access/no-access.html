@@ -1,0 +1,57 @@
+<div class="flex min-h-dvh flex-col bg-canvas">
+  <header class="mx-auto flex w-full max-w-6xl items-center px-4 py-5 sm:px-6">
+    <span class="flex items-center gap-3">
+      <span
+        class="flex h-9 w-9 items-center justify-center rounded-lg bg-mint-700 text-base font-semibold text-white"
+        aria-hidden="true"
+        >F</span
+      >
+      <span>
+        <span class="block text-sm font-semibold leading-tight text-slate-900">Fayrly</span>
+        <span class="block text-xs leading-tight text-slate-500">Penyelenggara</span>
+      </span>
+    </span>
+  </header>
+
+  <main class="flex flex-1 items-start justify-center px-4 pb-16 pt-6 sm:items-center sm:px-6">
+    <div class="w-full max-w-lg">
+      <div class="card p-6 sm:p-8">
+        <span
+          class="flex h-12 w-12 items-center justify-center rounded-full bg-mint-50 text-mint-700"
+        >
+          <lucide-icon name="shield-check" class="h-6 w-6" aria-hidden="true" />
+        </span>
+
+        <h1 class="mt-4 text-xl font-semibold text-slate-900">
+          Akun ini belum punya akses penyelenggara
+        </h1>
+        <p class="mt-2 text-sm leading-relaxed text-slate-600">
+          Dashboard ini khusus untuk pengelola event dan laporan. Minta administrator menambahkan
+          peran yang sesuai ke akunmu, lalu masuk kembali.
+        </p>
+
+        @if (user(); as account) {
+          <div class="mt-5 flex items-center gap-3 rounded-xl border border-slate-200 bg-canvas px-4 py-3">
+            <span
+              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-sm font-semibold text-mint-800"
+            >
+              {{ initials(account.name) }}
+            </span>
+            <div class="min-w-0">
+              <p class="truncate text-sm font-medium text-slate-800">{{ account.name }}</p>
+              <p class="truncate text-xs text-slate-500">{{ account.email }}</p>
+              <p class="mt-0.5 text-xs text-slate-500">
+                Peran saat ini: {{ account.roles.length ? account.roles.join(', ') : 'tanpa peran' }}
+              </p>
+            </div>
+          </div>
+        }
+
+        <button type="button" class="btn-primary mt-6 w-full" (click)="switchAccount()">
+          <lucide-icon name="log-out" class="h-4 w-4" aria-hidden="true" />
+          Keluar dan masuk dengan akun lain
+        </button>
+      </div>
+    </div>
+  </main>
+</div>

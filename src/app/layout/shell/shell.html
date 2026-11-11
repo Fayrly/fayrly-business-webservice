@@ -1,0 +1,16 @@
+<div class="min-h-dvh bg-canvas">
+  <app-sidebar
+    [mobileOpen]="mobileOpen()"
+    (closeMobile)="mobileOpen.set(false)"
+    (logout)="logout()"
+  />
+
+  <div class="flex min-h-dvh flex-col md:pl-20">
+    <app-topbar [pageTitle]="pageTitle()" (openMobile)="mobileOpen.set(true)" />
+    <main class="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+      <div class="mx-auto w-full max-w-6xl">
+        <router-outlet />
+      </div>
+    </main>
+  </div>
+</div>

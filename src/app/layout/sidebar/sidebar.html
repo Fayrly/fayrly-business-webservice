@@ -1,0 +1,96 @@
+<aside
+  class="fixed inset-y-0 left-0 z-30 hidden w-20 flex-col items-center border-r border-slate-100 bg-white py-5 md:flex"
+  aria-label="Navigasi utama"
+>
+  <a
+    routerLink="/ringkasan"
+    class="flex h-11 w-11 items-center justify-center rounded-xl bg-mint-700 text-lg font-semibold text-white shadow-card transition-colors hover:bg-mint-800"
+    aria-label="Fayrly Penyelenggara"
+  >
+    F
+  </a>
+
+  <nav class="mt-8 flex flex-1 flex-col items-center gap-1.5" aria-label="Menu">
+    @for (item of items(); track item.href) {
+      <a
+        [routerLink]="item.href"
+        [class]="
+          isActive(item)
+            ? 'flex h-11 w-11 items-center justify-center rounded-xl bg-mint-700 text-white shadow-card'
+            : 'flex h-11 w-11 items-center justify-center rounded-xl text-slate-400 transition-colors duration-150 hover:bg-slate-50 hover:text-slate-700'
+        "
+        [attr.aria-current]="isActive(item) ? 'page' : null"
+        [attr.title]="item.label"
+        [attr.aria-label]="item.label"
+      >
+        <lucide-icon [name]="item.icon" class="h-5 w-5" aria-hidden="true" />
+      </a>
+    }
+  </nav>
+
+  <button
+    type="button"
+    class="flex h-11 w-11 items-center justify-center rounded-xl text-slate-400 transition-colors duration-150 hover:bg-crimson-50 hover:text-crimson-600"
+    title="Keluar"
+    aria-label="Keluar"
+    (click)="logout.emit()"
+  >
+    <lucide-icon name="log-out" class="h-5 w-5" aria-hidden="true" />
+  </button>
+</aside>
+
+@if (mobileOpen()) {
+  <div
+    class="fixed inset-0 z-40 bg-slate-900/40 md:hidden"
+    role="presentation"
+    (click)="closeMobile.emit()"
+  ></div>
+  <aside
+    class="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col border-r border-slate-200 bg-white md:hidden"
+    aria-label="Navigasi utama"
+  >
+    <div class="flex h-16 items-center justify-between border-b border-slate-100 px-4">
+      <a routerLink="/ringkasan" class="flex items-center gap-3" (click)="closeMobile.emit()">
+        <span
+          class="flex h-9 w-9 items-center justify-center rounded-lg bg-mint-700 text-base font-semibold text-white"
+          aria-hidden="true"
+          >F</span
+        >
+        <span>
+          <span class="block text-sm font-semibold leading-tight text-slate-900">Fayrly</span>
+          <span class="block text-xs leading-tight text-slate-500">Penyelenggara</span>
+        </span>
+      </a>
+      <button
+        type="button"
+        class="icon-button"
+        aria-label="Tutup menu"
+        (click)="closeMobile.emit()"
+      >
+        <lucide-icon name="x" class="h-5 w-5" aria-hidden="true" />
+      </button>
+    </div>
+
+    <nav class="flex-1 space-y-1 overflow-y-auto p-3" aria-label="Menu">
+      @for (item of items(); track item.href) {
+        <a
+          [routerLink]="item.href"
+          class="nav-link"
+          [class.nav-link-active]="isActive(item)"
+          [attr.aria-current]="isActive(item) ? 'page' : null"
+          (click)="closeMobile.emit()"
+        >
+          <lucide-icon [name]="item.icon" class="h-5 w-5 shrink-0" aria-hidden="true" />
+          <span class="truncate">{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    @if (user(); as account) {
+      <div class="border-t border-slate-100 p-3">
+        <p class="px-2 text-sm font-medium text-slate-800">{{ account.name }}</p>
+        <p class="px-2 text-xs text-slate-500">{{ account.email }}</p>
+      </div>
+    }
+  </aside>
+}

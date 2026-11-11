@@ -1,0 +1,491 @@
+@if (loading()) {
+  <div class="space-y-6" aria-busy="true" aria-label="Memuat ringkasan">
+    <div class="h-8 w-56 skeleton"></div>
+    <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      @for (item of [1, 2, 3, 4, 5, 6]; track item) {
+        <div class="h-24 skeleton"></div>
+      }
+    </div>
+    <div class="grid gap-5 lg:grid-cols-3">
+      <div class="h-72 skeleton lg:col-span-2"></div>
+      <div class="h-72 skeleton"></div>
+    </div>
+  </div>
+} @else if (error()) {
+  <app-error-state [message]="error()!" (retry)="load()" />
+} @else if (data(); as overview) {
+  <div class="space-y-6">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-semibold text-slate-900 sm:text-2xl">
+          Selamat datang, {{ firstName(userName) }}
+        </h2>
+        <p class="mt-1 text-sm text-slate-500">{{ today }} · Waktu Indonesia Barat</p>
+      </div>
+      @if (canWrite) {
+        <a routerLink="/events/baru" class="btn-pill max-sm:hidden">
+          <lucide-icon name="plus" class="h-4 w-4" aria-hidden="true" />
+          Buat event
+        </a>
+      }
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      @for (stat of stats(); track stat.label) {
+        <a
+          [routerLink]="stat.href"
+          [queryParams]="stat.queryParams ?? {}"
+          class="card group flex flex-col justify-between p-4 transition-colors hover:border-mint-300"
+        >
+          <span class="text-xs font-medium text-slate-500">{{ stat.label }}</span>
+          <span
+            class="mt-2 text-2xl font-semibold tabular-nums"
+            [class]="
+              stat.tone === 'mint'
+                ? 'text-mint-800'
+                : stat.tone === 'danger'
+                  ? 'text-crimson-700'
+                  : 'text-slate-900'
+            "
+          >
+            {{ stat.value }}
+          </span>
+          <span class="mt-1 block text-[11px] leading-snug text-slate-400">
+            {{ stat.hint }}
+          </span>
+        </a>
+      }
+    </div>
+
+    @if (attention().length > 0) {
+      <section
+        class="rounded-xl border border-mint-200 bg-mint-50/60 p-4 sm:p-5"
+        aria-labelledby="attention-title"
+      >
+        <h3 id="attention-title" class="text-sm font-semibold text-slate-900">
+          Perlu perhatian
+        </h3>
+        <ul class="mt-3 divide-y divide-mint-200/70">
+          @for (item of attention(); track item.label) {
+            <li class="flex flex-wrap items-center justify-between gap-2 py-2.5 first:pt-0 last:pb-0">
+              <span class="min-w-0">
+                <span class="block text-sm font-medium text-slate-900">{{ item.label }}</span>
+                <span class="mt-0.5 block text-xs text-slate-600">{{ item.detail }}</span>
+              </span>
+              <a
+                [routerLink]="item.href"
+                [queryParams]="item.queryParams ?? {}"
+                class="inline-flex min-h-11 shrink-0 items-center gap-1 text-sm font-medium text-mint-700 hover:text-mint-800"
+              >
+                {{ item.action }}
+                <lucide-icon name="arrow-right" class="h-4 w-4" aria-hidden="true" />
+              </a>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    @if (overview.total === 0) {
+      <div class="card p-6">
+        <app-empty-state
+          icon="calendar-days"
+          title="Belum ada event"
+          message="Mulai dengan membuat event pertamamu. Draf bisa disimpan sebelum diterbitkan."
+        />
+        @if (canWrite) {
+          <div class="mt-4 flex justify-center">
+            <a routerLink="/events/baru" class="btn-pill">
+              <lucide-icon name="plus" class="h-4 w-4" aria-hidden="true" />
+              Buat event
+            </a>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="grid gap-5 lg:grid-cols-3">
+        <div class="space-y-5 lg:col-span-2">
+          @if (overview.ongoing.length > 0) {
+            <section aria-labelledby="ongoing-title">
+              <div class="flex items-center justify-between">
+                <h3 id="ongoing-title" class="text-base font-semibold text-slate-900">
+                  Event berlangsung
+                </h3>
+                <a
+                  routerLink="/jadwal"
+                  class="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-mint-700 hover:text-mint-800"
+                >
+                  Lihat jadwal
+                  <lucide-icon name="arrow-right" class="h-4 w-4" aria-hidden="true" />
+                </a>
+              </div>
+              <div class="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                @for (event of overview.ongoing; track event.id) {
+                  <a
+                    [routerLink]="['/events', event.id]"
+                    [class]="typeCardClass(event)"
+                    class="group flex flex-col rounded-2xl p-5 transition-shadow hover:shadow-card"
+                  >
+                    <div class="flex items-start justify-between">
+                      <span
+                        class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/70"
+                      >
+                        <lucide-icon
+                          [name]="typeIcon(event)"
+                          class="h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      </span>
+                      @if (attendeePercent(event); as percent) {
+                        <span class="text-3xl font-semibold tabular-nums leading-none">
+                          {{ percent }}<span class="text-lg">%</span>
+                        </span>
+                      } @else {
+                        <span class="text-3xl font-semibold tabular-nums leading-none">
+                          {{ formatNumber(event.going_count) }}
+                        </span>
+                      }
+                    </div>
+                    <p class="mt-1 text-xs font-medium opacity-80">
+                      @if (attendeePercent(event) !== null) {
+                        {{ formatNumber(event.going_count) }} peserta · kapasitas
+                        {{ formatNumber(event.capacity) }}
+                      } @else {
+                        peserta terdaftar
+                      }
+                    </p>
+                    <p class="mt-4 truncate text-sm font-semibold">{{ event.title }}</p>
+                    <p class="mt-0.5 text-xs opacity-75">{{ formatShortDate(event.starts_at) }}</p>
+                    <div class="mt-3 flex items-center">
+                      @for (name of attendeeNames(event); track name) {
+                        <span
+                          class="-ml-1 flex h-7 w-7 items-center justify-center rounded-full bg-white text-[10px] font-semibold first:ml-0"
+                          >{{ initialsOf(name) }}</span
+                        >
+                      }
+                      @if (event.going_count > attendeeNames(event).length) {
+                        <span
+                          class="-ml-1 flex h-7 w-7 items-center justify-center rounded-full bg-white/80 text-[10px] font-semibold"
+                        >
+                          +{{ formatNumber(event.going_count - attendeeNames(event).length) }}
+                        </span>
+                      }
+                    </div>
+                  </a>
+                }
+              </div>
+            </section>
+          }
+
+          <section class="card" aria-labelledby="upcoming-title">
+            <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <h3 id="upcoming-title" class="text-sm font-semibold text-slate-900">
+                Jadwal terdekat
+              </h3>
+              <a
+                routerLink="/jadwal"
+                class="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-mint-700 hover:text-mint-800"
+              >
+                Lihat semua
+              </a>
+            </div>
+
+            @if (upcomingPreview().length === 0) {
+              <p class="px-5 py-8 text-sm text-slate-500">
+                Belum ada event mendatang. Event yang sudah lewat tetap bisa dilihat di halaman
+                Event Saya.
+              </p>
+            } @else {
+              <ul class="divide-y divide-slate-100">
+                @for (event of upcomingPreview(); track event.id) {
+                  <li class="flex items-center gap-4 px-5 py-4">
+                    <span
+                      [class]="typeCardClass(event)"
+                      class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
+                    >
+                      <lucide-icon
+                        [name]="typeIcon(event)"
+                        class="h-5 w-5"
+                        aria-hidden="true"
+                      />
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <a
+                        [routerLink]="['/events', event.id]"
+                        class="block truncate text-sm font-medium text-slate-900 hover:text-mint-800"
+                      >
+                        {{ event.title }}
+                      </a>
+                      <span class="mt-0.5 block truncate text-xs text-slate-500">
+                        {{ formatEventDate(event.starts_at) }}
+                        @if (event.city) {
+                          · {{ event.city }}
+                        }
+                      </span>
+                    </span>
+                    <span
+                      class="hidden w-28 shrink-0 text-xs tabular-nums text-slate-500 md:block"
+                    >
+                      {{ capacityLabel(event) }}
+                    </span>
+                    <span class="hidden shrink-0 sm:block">
+                      <app-status-badge [status]="event.status" kind="event" />
+                    </span>
+                    <a
+                      [routerLink]="['/events', event.id]"
+                      class="icon-button h-9 w-9 shrink-0 rounded-full"
+                      [attr.aria-label]="'Kelola ' + event.title"
+                    >
+                      <lucide-icon name="ellipsis" class="h-4 w-4" aria-hidden="true" />
+                    </a>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+
+          @if (overview.donations.length > 0) {
+            <section class="card" aria-labelledby="donations-title">
+              <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                <h3 id="donations-title" class="text-sm font-semibold text-slate-900">
+                  Donasi terkumpul
+                </h3>
+                <span class="text-xs text-slate-500">Event amal</span>
+              </div>
+              <ul class="divide-y divide-slate-100">
+                @for (event of overview.donations; track event.id) {
+                  <li class="px-5 py-4">
+                    <div class="flex flex-wrap items-baseline justify-between gap-2">
+                      <a
+                        [routerLink]="['/events', event.id]"
+                        class="min-h-11 truncate text-sm font-medium text-slate-900 hover:text-mint-800"
+                      >
+                        {{ event.title }}
+                      </a>
+                      <span class="text-xs tabular-nums text-slate-500">
+                        {{ donationPercent(event) }}%
+                      </span>
+                    </div>
+                    <div
+                      class="mt-1 h-2 overflow-hidden rounded-full bg-slate-100"
+                      aria-hidden="true"
+                    >
+                      <span
+                        class="block h-full rounded-full bg-mint-600"
+                        [style.width.%]="donationPercent(event)"
+                      ></span>
+                    </div>
+                    <p class="mt-1.5 text-xs tabular-nums text-slate-500">
+                      {{ donationSummary(event) }}
+                      @if (event.beneficiary) {
+                        · {{ event.beneficiary }}
+                      }
+                    </p>
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+        </div>
+
+        <div class="space-y-5">
+          <section class="card" aria-labelledby="activity-title">
+            <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <h3 id="activity-title" class="text-sm font-semibold text-slate-900">
+                Aktivitas terbaru
+              </h3>
+              <a
+                routerLink="/ulasan"
+                class="inline-flex min-h-11 items-center text-sm font-medium text-mint-700 hover:text-mint-800"
+              >
+                Lihat
+              </a>
+            </div>
+            @if (activities().length === 0) {
+              <p class="px-5 py-8 text-sm leading-relaxed text-slate-500">
+                Belum ada aktivitas. Ulasan peserta dan perubahan laporan akan muncul di sini.
+              </p>
+            } @else {
+              <ul class="divide-y divide-slate-100">
+                @for (item of activities(); track item.title + item.time) {
+                  <li class="flex items-center gap-3 px-5 py-3.5">
+                    <span
+                      [class]="
+                        item.kind === 'review'
+                          ? 'bg-mint-50 text-mint-800'
+                          : 'bg-slate-100 text-slate-600'
+                      "
+                      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+                    >
+                      {{ item.initials }}
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <span class="block truncate text-sm font-medium text-slate-900">
+                        {{ item.title }}
+                      </span>
+                      <span class="mt-0.5 block truncate text-xs text-slate-500">
+                        {{ item.detail }}
+                      </span>
+                    </span>
+                    <span class="shrink-0 text-[11px] text-slate-400">
+                      {{ formatRelativeTime(item.time) }}
+                    </span>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+
+          <section class="card" aria-labelledby="stats-title">
+            <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <h3 id="stats-title" class="text-sm font-semibold text-slate-900">
+                Statistik event
+              </h3>
+              <a
+                routerLink="/events"
+                class="inline-flex min-h-11 items-center text-sm font-medium text-mint-700 hover:text-mint-800"
+              >
+                Lihat semua
+              </a>
+            </div>
+            <ul class="divide-y divide-slate-100">
+              @for (stat of donutStats(); track stat.label) {
+                <li>
+                  <a
+                    [routerLink]="stat.href"
+                    [queryParams]="stat.queryParams ?? {}"
+                    class="flex items-center gap-4 px-5 py-4 hover:bg-slate-50"
+                  >
+                    <svg
+                      viewBox="0 0 36 36"
+                      class="h-14 w-14 shrink-0"
+                      role="img"
+                      [attr.aria-label]="stat.label + ' ' + stat.percent + ' persen'"
+                    >
+                      <circle
+                        cx="18"
+                        cy="18"
+                        r="15.9155"
+                        fill="none"
+                        stroke="var(--color-slate-100)"
+                        stroke-width="3.5"
+                      />
+                      <circle
+                        cx="18"
+                        cy="18"
+                        r="15.9155"
+                        fill="none"
+                        [style.stroke]="stat.stroke"
+                        stroke-width="3.5"
+                        stroke-linecap="round"
+                        pathLength="100"
+                        [style.stroke-dasharray]="stat.percent + ' ' + (100 - stat.percent)"
+                        stroke-dashoffset="25"
+                      />
+                    </svg>
+                    <span class="min-w-0 flex-1">
+                      <span class="block text-xs font-medium text-slate-500">
+                        {{ stat.label }}
+                      </span>
+                      <span class="mt-0.5 block truncate text-sm font-semibold text-slate-900">
+                        {{ stat.display }}
+                      </span>
+                    </span>
+                    <span class="text-sm font-semibold tabular-nums text-slate-900">
+                      {{ stat.percent }}%
+                    </span>
+                  </a>
+                </li>
+              }
+            </ul>
+          </section>
+
+          <section class="card" aria-labelledby="status-title">
+            <div class="border-b border-slate-100 px-5 py-4">
+              <h3 id="status-title" class="text-sm font-semibold text-slate-900">Status event</h3>
+            </div>
+            <div class="px-5 py-4">
+              <div
+                class="flex h-2 overflow-hidden rounded-full bg-slate-100"
+                aria-hidden="true"
+              >
+                @for (row of statusRows(); track row.status) {
+                  @if (row.count > 0) {
+                    <span
+                      [class]="row.bar"
+                      [style.width.%]="(row.count / overview.total) * 100"
+                    ></span>
+                  }
+                }
+              </div>
+              <ul class="mt-3 space-y-0.5">
+                @for (row of statusRows(); track row.status) {
+                  <li>
+                    <a
+                      [routerLink]="row.href"
+                      [queryParams]="row.queryParams"
+                      class="-mx-2 flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm hover:bg-slate-50"
+                    >
+                      <span [class]="row.dot" class="h-2 w-2 shrink-0 rounded-full"></span>
+                      <span class="flex-1 text-slate-600">{{ row.label }}</span>
+                      <span class="font-medium tabular-nums text-slate-900">
+                        {{ formatNumber(row.count) }}
+                      </span>
+                    </a>
+                  </li>
+                }
+              </ul>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="reviews-title">
+            <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <h3 id="reviews-title" class="text-sm font-semibold text-slate-900">
+                Ulasan terbaru
+              </h3>
+              <a
+                routerLink="/ulasan"
+                class="inline-flex min-h-11 items-center text-sm font-medium text-mint-700 hover:text-mint-800"
+              >
+                Lihat
+              </a>
+            </div>
+
+            @if (overview.reviews.length === 0) {
+              <p class="px-5 py-8 text-sm leading-relaxed text-slate-500">
+                Belum ada ulasan dari peserta. Ulasan muncul otomatis setelah event selesai dan
+                peserta mengirim penilaian.
+              </p>
+            } @else {
+              <ul class="divide-y divide-slate-100">
+                @for (review of overview.reviews; track review.id) {
+                  <li class="px-5 py-4">
+                    <div class="flex items-center gap-1 text-mint-700" aria-hidden="true">
+                      @for (star of stars(review.rating); track $index) {
+                        <lucide-icon
+                          name="star"
+                          class="h-3.5 w-3.5"
+                          [class.text-slate-300]="star === 0"
+                          [class.fill-current]="star === 1"
+                        />
+                      }
+                      <span class="ml-1 text-xs font-medium text-slate-500">
+                        {{ review.rating }}/5
+                      </span>
+                    </div>
+                    <p class="mt-1.5 line-clamp-2 text-sm leading-relaxed text-slate-700">
+                      “{{ review.body }}”
+                    </p>
+                    <p class="mt-1.5 truncate text-xs text-slate-500">
+                      {{ review.user_name }} · {{ review.event_title }}
+                    </p>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+        </div>
+      </div>
+    }
+  </div>
+}
