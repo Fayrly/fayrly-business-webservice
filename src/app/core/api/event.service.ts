@@ -14,6 +14,10 @@ export class EventService {
     return this.http.get<ListResponse<Event>>('/events/mine', { params: toParams(query) });
   }
 
+  listPublic(query: EventQuery = {}): Observable<ListResponse<Event>> {
+    return this.http.get<ListResponse<Event>>('/events', { params: toParams(query) });
+  }
+
   /** Loads every owned event, following the page_size cap of 100. */
   listAllMine(): Observable<Event[]> {
     return this.listMine({ page: 1, pageSize: ALL_PAGE_SIZE }).pipe(

@@ -37,6 +37,12 @@
   html {
     -webkit-tap-highlight-color: transparent;
     overflow-anchor: none;
+    scroll-behavior: smooth;
+  }
+
+  ::selection {
+    background: var(--color-mint-100);
+    color: var(--color-mint-950);
   }
 
   body {

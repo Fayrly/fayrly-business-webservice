@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router, UrlTree } from '@angular/router';
+import { CanActivateFn, CanMatchFn, Router, UrlTree } from '@angular/router';
 import { AuthService } from '../api/auth.service';
 import { isOrganizer, hasAnyPermission } from './permissions';
 
@@ -18,6 +18,8 @@ export const guestGuard: CanActivateFn = () => {
   const router = inject(Router);
   return auth.isAuthenticated() ? router.createUrlTree(['/ringkasan']) : true;
 };
+
+export const landingMatch: CanMatchFn = () => !inject(AuthService).isAuthenticated();
 
 export const organizerGuard: CanActivateFn = () => {
   const auth = inject(AuthService);

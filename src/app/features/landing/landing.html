@@ -1,0 +1,348 @@
+<div class="min-h-dvh bg-white">
+  <div class="mx-auto w-full max-w-7xl">
+    <header
+      class="flex items-center justify-between px-6 pt-7 sm:px-10 sm:pt-9"
+    >
+      <a routerLink="/" class="flex items-center gap-3" aria-label="Fayrly Penyelenggara">
+        <img src="/brandlogo-black.svg" alt="Fayrly" width="1193" height="432" class="h-10 w-auto" />
+      </a>
+
+      <nav class="hidden items-center gap-8 md:flex" aria-label="Navigasi utama">
+        <a href="#fitur" class="text-sm font-medium text-slate-700 transition-colors hover:text-mint-800">Fitur</a>
+        <a href="#statistik" class="text-sm font-medium text-slate-700 transition-colors hover:text-mint-800">Statistik</a>
+        <a href="#cara-kerja" class="text-sm font-medium text-slate-700 transition-colors hover:text-mint-800">Cara Kerja</a>
+        <a href="#kontak" class="text-sm font-medium text-slate-700 transition-colors hover:text-mint-800">Kontak</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <a
+          routerLink="/masuk"
+          class="hidden h-11 items-center justify-center rounded-full border-2 border-mint-950 px-7 text-sm font-semibold text-mint-950 transition-colors hover:bg-mint-950 hover:text-white sm:inline-flex"
+          >Masuk</a
+        >
+        <button
+          type="button"
+          class="inline-flex h-11 w-11 items-center justify-center rounded-xl text-mint-950 hover:bg-mint-50 md:hidden"
+          [attr.aria-expanded]="menuOpen()"
+          aria-label="Buka menu"
+          (click)="menuOpen.set(!menuOpen())"
+        >
+          <lucide-icon [name]="menuOpen() ? 'x' : 'menu'" class="h-5 w-5" aria-hidden="true" />
+        </button>
+      </div>
+    </header>
+
+    @if (menuOpen()) {
+      <div class="mx-6 mt-3 rounded-2xl border border-slate-200 bg-white p-3 sm:mx-10 md:hidden">
+        <a
+          href="#fitur"
+          class="block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-mint-50"
+          (click)="closeMenu()"
+          >Fitur</a
+        >
+        <a
+          href="#statistik"
+          class="block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-mint-50"
+          (click)="closeMenu()"
+          >Statistik</a
+        >
+        <a
+          href="#cara-kerja"
+          class="block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-mint-50"
+          (click)="closeMenu()"
+          >Cara Kerja</a
+        >
+        <a
+          href="#kontak"
+          class="block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-mint-50"
+          (click)="closeMenu()"
+          >Kontak</a
+        >
+        <a
+          routerLink="/masuk"
+          class="mt-2 inline-flex h-11 w-full items-center justify-center rounded-full bg-mint-950 text-sm font-semibold text-white"
+          (click)="closeMenu()"
+          >Masuk / Buat Event</a
+        >
+      </div>
+    }
+
+    <main>
+      <section
+        class="grid min-w-0 grid-cols-1 items-center gap-10 px-6 pb-4 pt-8 sm:px-10 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:gap-6 md:pt-16 lg:gap-12 lg:pt-8"
+      >
+        <div class="min-w-0">
+          <h1
+            class="text-[clamp(2rem,4vw,3.25rem)] font-bold leading-[1.12] tracking-tight text-mint-950"
+          >
+            Punya ide event? Wujudkan sekarang <span class="text-mint-700">dengan mudah</span>
+          </h1>
+
+          <div class="mt-8 flex flex-wrap items-center gap-x-7 gap-y-5">
+            <a
+              routerLink="/masuk"
+              class="inline-flex min-h-12 items-center justify-center rounded-full bg-mint-950 px-7 py-3 text-sm font-semibold text-white transition-colors hover:bg-mint-900"
+            >
+              Mulai Buat Event
+            </a>
+            <a
+              href="#fitur"
+              class="text-sm font-semibold text-mint-950 underline decoration-mint-950/60 decoration-2 underline-offset-8 transition-colors hover:text-mint-700"
+              >Lihat semua fitur</a
+            >
+          </div>
+        </div>
+
+        <div class="relative mx-auto hidden aspect-square w-full min-w-0 max-w-[28rem] md:block" aria-label="Suasana event di Fayrly">
+          @if (covers().length) {
+            <img
+              [src]="covers()[0]"
+              alt="Suasana penonton event di Fayrly"
+              width="480" height="480"
+              class="absolute left-[14%] top-0 z-30 aspect-square w-[49%] rounded-full border-4 border-white object-cover shadow-card"
+            />
+            <img
+              [src]="covers()[1] || covers()[0]"
+              alt="Penampilan di panggung event"
+              width="480" height="480"
+              class="absolute left-[43%] top-[17%] z-20 aspect-square w-[47%] rounded-full border-4 border-white object-cover shadow-card"
+            />
+            <img
+              [src]="covers()[2] || covers()[0]"
+              alt="Kemeriahan event di Fayrly"
+              width="480" height="480"
+              class="absolute left-[4%] top-[37%] z-10 aspect-square w-[47%] rounded-full border-4 border-white object-cover shadow-card"
+            />
+            <img
+              [src]="covers()[3] || covers()[1] || covers()[0]"
+              alt="" aria-hidden="true"
+              width="480" height="480"
+              class="absolute left-[45%] top-[60%] z-40 aspect-square w-[30%] rounded-full border-4 border-white object-cover shadow-card"
+            />
+            <img
+              [src]="covers()[4] || covers()[2] || covers()[0]"
+              alt="" aria-hidden="true"
+              width="480" height="480"
+              class="absolute left-[26%] top-[70%] z-50 aspect-square w-[29%] rounded-full border-4 border-white object-cover shadow-card"
+            />
+          }
+        </div>
+      </section>
+
+      <section
+        id="statistik"
+        #statsSection
+        class="scroll-mt-10 px-6 pb-8 sm:px-10 lg:-mt-24 lg:pt-2"
+      >
+        <div class="stats-layout">
+          <div class="stats-composition">
+            <div class="stats-reviews">
+              <svg class="stats-shape" viewBox="0 0 436 430" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M78 97H316Q340 97 340 73V24Q340 0 364 0H412Q436 0 436 24V73Q436 97 412 97H358Q340 97 340 115V406Q340 430 316 430H78Q54 430 54 406V121Q54 97 78 97Z" fill="currentColor" />
+              </svg>
+              <a href="#fitur" class="stats-arrow" aria-label="Lihat semua fitur Fayrly">
+                <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                  <path d="M10 38 38 10M12 10h26v26" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </a>
+              <div class="stats-reviewers">
+                @for (name of reviewers(); track name; let i = $index) {
+                  <span class="stats-avatar" [ngClass]="avatarColor(i)" [attr.aria-label]="name">
+                    {{ initialOf(name) }}
+                  </span>
+                }
+                @if (extraReviewers() > 0) {
+                  <span class="stats-avatar bg-mint-950">+{{ extraReviewers() }}</span>
+                }
+              </div>
+              <div class="stats-review-copy">
+                <p class="stats-label">Total Ulasan</p>
+                <p class="stats-review-total">{{ displayed().reviews }}</p>
+              </div>
+            </div>
+
+            <div class="stats-active">
+              <div class="stats-active-copy">
+                <p class="stats-total">{{ displayed().events }}</p>
+                <p class="stats-label">Event aktif<br />di Fayrly</p>
+              </div>
+            </div>
+
+            <div class="stats-going">
+              <svg class="stats-shape" viewBox="0 0 540 349" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M36 0H364Q400 0 400 36V74Q400 114 440 114H504Q540 114 540 150V329Q540 349 520 349H20Q0 349 0 329V36Q0 0 36 0Z" fill="currentColor" />
+              </svg>
+              <div class="stats-going-copy">
+                <p class="stats-total">{{ displayed().going }}</p>
+                <p class="stats-label">Berminat hadir<br />di {{ displayed().cities }} kota</p>
+              </div>
+            </div>
+
+            <div class="stats-badge" aria-hidden="true">
+              <svg class="stats-badge-text" viewBox="0 0 100 100">
+                <defs>
+                  <path id="landingBadgeCircle" d="M50 50m-38 0a38 38 0 1 1 76 0a38 38 0 1 1-76 0" />
+                </defs>
+                <text fill="currentColor" font-size="8.5">
+                  <textPath href="#landingBadgeCircle" textLength="232" lengthAdjust="spacing">mulai dari sini • bersama fayrly •</textPath>
+                </text>
+              </svg>
+              <svg class="stats-badge-star" viewBox="0 0 100 100">
+                @for (angle of [0, 36, 72, 108, 144, 180, 216, 252, 288, 324]; track angle) {
+                  <path d="M50 50C46 34 43 9 50 9S54 34 50 50Z" fill="currentColor" [attr.transform]="'rotate(' + angle + ' 50 50)'" />
+                }
+              </svg>
+            </div>
+          </div>
+
+          <a
+            href="#fitur"
+            class="relative z-10 mb-12 hidden aspect-square w-32 shrink-0 flex-col items-center justify-center gap-1.5 rounded-full bg-mint-950 text-center text-white transition-transform hover:scale-105 lg:flex xl:w-36"
+            aria-label="Jelajahi fitur"
+          >
+            <span class="absolute -bottom-2 -left-1 h-7 w-7 rounded-full bg-mint-950" aria-hidden="true"></span>
+            <span class="px-7 text-sm font-semibold leading-snug">Jelajahi Fitur</span>
+            <lucide-icon name="arrow-up-right" class="h-5 w-5" aria-hidden="true" />
+          </a>
+        </div>
+      </section>
+
+      <section id="organizer" class="scroll-mt-10 px-6 py-8 sm:px-10" aria-labelledby="organizer-heading">
+        <div class="border-y border-slate-200 py-10 text-center sm:py-12">
+          <h2 id="organizer-heading" class="text-2xl font-bold tracking-tight text-mint-950 sm:text-3xl">
+            Klien Kami
+          </h2>
+          <div class="organizer-marquee mt-10" tabindex="0" role="region" aria-label="Logo organizer, fokus untuk menjeda animasi">
+            <div id="organizer-track" class="organizer-track">
+              @for (copy of [0, 1]; track copy) {
+                <ul class="organizer-group" [attr.aria-hidden]="copy === 1 ? 'true' : null" [attr.aria-label]="copy === 0 ? 'Organizer yang menggunakan Fayrly' : null">
+                  @for (organizer of organizers; track organizer.image) {
+                    <li class="organizer-item">
+                      <img [src]="'/organizers/' + organizer.image" [alt]="copy === 0 ? organizer.name : ''" [width]="organizer.width" [height]="organizer.height" class="organizer-logo" [class.organizer-logo-compact]="organizer.compact" />
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          </div>
+          <p class="mt-8 text-sm font-medium text-slate-600 sm:text-base">Dan <span class="font-semibold text-mint-700">50+</span> Lainnya</p>
+        </div>
+      </section>
+
+      <section id="fitur" class="feature-section scroll-mt-10 py-14" aria-labelledby="features-heading">
+        <h2 id="features-heading" class="mx-auto max-w-2xl px-6 text-center text-3xl font-bold leading-tight tracking-tight text-mint-950 sm:text-4xl">
+          Semua yang dibutuhkan<br class="hidden sm:block" /> untuk menggelar event.
+        </h2>
+        <div #featurePills class="feature-pills mx-auto max-w-lg space-y-3 px-3 py-10 md:hidden" role="group" aria-label="Pilihan fitur Fayrly">
+          @for (row of featureRows; track $index) {
+            <div class="feature-pill-row mx-auto flex w-max justify-center gap-2">
+              @for (feature of row; track feature.title) {
+                <button type="button" class="feature-pill inline-flex min-h-14 shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full border border-mint-200 px-3 font-semibold active:opacity-80" [attr.aria-label]="'Lihat fitur ' + feature.title" aria-haspopup="dialog" aria-controls="feature-dialog" (click)="openFeature(feature)">
+                  {{ feature.title }}
+                  <lucide-icon name="arrow-up-right" class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                </button>
+              }
+            </div>
+          }
+        </div>
+        <div class="feature-showcase hidden md:block">
+          <span class="feature-sticker feature-sticker-start" aria-hidden="true">Dari ide</span>
+          <span class="feature-sticker feature-sticker-end" aria-hidden="true">Jadi event</span>
+          <div class="feature-scroll" role="group" aria-label="Pilihan fitur Fayrly">
+            <div class="feature-deck">
+              @for (f of features; track f.title; let i = $index) {
+                <button type="button" class="feature-card" [attr.aria-label]="'Lihat fitur ' + f.title" aria-haspopup="dialog" aria-controls="feature-dialog" (click)="openFeature(f)">
+                  <img [src]="'/features/' + f.image" alt="" width="800" height="1100" class="feature-photo" loading="lazy" decoding="async" />
+                  <span class="flex justify-between text-[0.625rem] font-semibold" aria-hidden="true"><span>fayrly.</span><span>0{{ i + 1 }}</span></span>
+                  <span class="feature-card-title">{{ f.posterTitle }}</span>
+                  <span class="mt-auto flex items-center justify-between gap-1 text-[0.625rem] font-medium"><span>{{ f.title }}</span><lucide-icon name="arrow-up-right" class="h-4 w-4 shrink-0" aria-hidden="true" /></span>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="mx-auto max-w-lg px-6 text-center">
+          <p class="text-sm leading-relaxed text-slate-600 sm:text-base">Dari persiapan sampai evaluasi, semua ada di sini. Klik kartu untuk melihat fitur lebih dekat.</p>
+          <p class="mt-2 hidden text-xs text-mint-700 md:block lg:hidden">Geser untuk menjelajahi semua fitur</p>
+          <div class="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
+            <a routerLink="/masuk" class="inline-flex min-h-12 items-center justify-center rounded-full bg-mint-950 px-6 py-3 text-sm font-semibold text-white hover:bg-mint-800">Mulai Buat Event</a>
+            <a href="#cara-kerja" class="text-sm font-semibold text-mint-950 underline underline-offset-4">Cara kerjanya</a>
+          </div>
+        </div>
+      </section>
+
+      <dialog #featureDialog id="feature-dialog" class="feature-dialog" aria-labelledby="feature-dialog-title" aria-describedby="feature-dialog-description" (click)="closeFeatureOnBackdrop($event)" (close)="onFeatureClosed()">
+        <button type="button" class="feature-dialog-close absolute right-3 top-3 z-10 grid h-11 w-11 cursor-pointer place-items-center rounded-full bg-white text-mint-950 hover:bg-mint-50" aria-label="Tutup detail fitur" autofocus (click)="closeFeature()"><lucide-icon name="x" class="h-5 w-5" aria-hidden="true" /></button>
+        @if (selectedFeature(); as feature) {
+          <div class="feature-dialog-art hidden md:block" aria-hidden="true">
+            <img [src]="'/features/' + feature.image" alt="" width="800" height="1100" class="feature-photo" />
+            <span class="block text-[2rem] font-bold leading-[1.1] tracking-[-0.04em]">{{ feature.posterTitle }}</span>
+          </div>
+          <div class="feature-dialog-content">
+            <p class="text-xs font-semibold uppercase tracking-widest text-mint-700">Kenali fitur Fayrly</p>
+            <h2 id="feature-dialog-title" class="mt-3 text-2xl font-bold leading-tight tracking-tight text-mint-950 sm:text-3xl">{{ feature.title }}</h2>
+            <p id="feature-dialog-description" class="mt-4 text-sm leading-relaxed text-slate-600">{{ feature.desc }}</p>
+            <ul class="mt-6 space-y-4">
+              @for (detail of feature.details; track detail) {
+                <li class="flex items-start gap-3 text-sm leading-relaxed text-slate-700"><lucide-icon name="check" class="mt-1 h-4 w-4 text-mint-700" aria-hidden="true" /><span>{{ detail }}</span></li>
+              }
+            </ul>
+            <a routerLink="/masuk" class="mt-8 inline-flex min-h-12 items-center justify-center gap-3 rounded-full bg-mint-950 px-6 py-3 text-sm font-semibold text-white hover:bg-mint-800" (click)="closeFeature()">Mulai Buat Event<lucide-icon name="arrow-up-right" class="h-4 w-4" aria-hidden="true" /></a>
+          </div>
+        }
+      </dialog>
+
+      <section id="cara-kerja" class="scroll-mt-10 px-6 pb-14 sm:px-10">
+        <div class="max-w-2xl">
+          <h2 class="mt-3 text-3xl font-bold tracking-tight text-mint-950 sm:text-4xl">
+            Mulai dalam tiga langkah
+          </h2>
+        </div>
+
+        <div class="mt-10 grid gap-4 md:grid-cols-3">
+          @for (s of steps; track s.no) {
+            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-card">
+              <span class="text-4xl font-bold text-mint-200">{{ s.no }}</span>
+              <h3 class="mt-4 text-base font-semibold text-mint-950">{{ s.title }}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-slate-500">{{ s.desc }}</p>
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="px-6 pb-14 sm:px-10">
+        <div class="rounded-[2.5rem] bg-mint-950 px-6 py-14 text-center text-white sm:px-12">
+          <h2 class="mx-auto max-w-xl text-3xl font-bold tracking-tight sm:text-4xl">
+            Siap menggelar event pertamamu?
+          </h2>
+          <p class="mx-auto mt-4 max-w-md text-sm leading-relaxed text-mint-100 sm:text-base">
+            Bergabung dengan penyelenggara lain dan tayangkan eventmu di Fayrly hari ini.
+          </p>
+          <a
+            routerLink="/masuk"
+            class="mt-8 inline-flex min-h-12 max-w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-mint-950 transition-colors hover:bg-mint-50 sm:px-8"
+          >
+            Buat Event Sekarang
+            <lucide-icon name="arrow-right" class="h-4 w-4" aria-hidden="true" />
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer id="kontak" class="scroll-mt-10 border-t border-slate-200">
+      <div
+        class="flex flex-col items-center justify-between gap-4 px-6 py-8 sm:flex-row sm:px-10"
+      >
+        <div class="flex items-center gap-3">
+          <img src="/brandlogo-black.svg" alt="Fayrly" width="1193" height="432" class="h-8 w-auto shrink-0" />
+          <span class="text-sm font-semibold text-slate-900">untuk Penyelenggara</span>
+        </div>
+        <p class="flex items-center gap-1.5 text-xs text-slate-500">
+          Dibuat dengan
+          <lucide-icon name="heart" class="h-3.5 w-3.5 text-crimson-500" aria-hidden="true" />
+          di Indonesia
+        </p>
+      </div>
+    </footer>
+  </div>
+</div>

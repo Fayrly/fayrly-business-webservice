@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import {
   authGuard,
   guestGuard,
+  landingMatch,
   organizerGuard,
   permissionGuard,
 } from './core/auth/auth.guard';
@@ -10,6 +11,12 @@ import { unsavedChangesGuard } from './core/auth/unsaved-changes.guard';
 import { Shell } from './layout/shell/shell';
 
 export const routes: Routes = [
+  {
+    path: '',
+    canMatch: [landingMatch],
+    title: 'Fayrly untuk Penyelenggara',
+    loadComponent: () => import('./features/landing/landing').then((m) => m.LandingPage),
+  },
   {
     path: 'masuk',
     title: 'Masuk',
@@ -107,5 +114,5 @@ export const routes: Routes = [
       },
     ],
   },
-  { path: '**', redirectTo: 'ringkasan' },
+  { path: '**', redirectTo: '' },
 ];
